@@ -54,11 +54,7 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
-      # Set the working directory (if your docker-compose.yml is not in the root)
-      - name: Set working directory
-        run: cd ./path/to/your/docker-compose.yml
-
-      # Build and start application using Docker Compose
+      # Build and start application using Docker Compose (if docker-compose.yml is in the root directory)
       - name: Build and start services
         run: docker-compose up -d --build
 

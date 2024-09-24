@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  app:
+    image: node:18
+    container_name: node-app
+    working_dir: /usr/src/app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    command: >
+      sh -c "npm install && npm run db:migrate && npm start"
+      
+  cypress:
+    image: cypress/included:10.0.0
+    container_name: cypress-tests
+    depends_on:
+      - app
+    environment:
+      CYPRESS_baseUrl: http://app:3000
+    volumes:
+      - ./cypress:/e2e/cypress
+      - ./cypress.json:/e2e/cypress.json
+    entrypoint: npx cypress run
+    networks:
+      - app-network
+
+  db:
+    image: nouchka/sqlite3
+    container_name: sqlite-db
+    volumes:
+      - ./data:/data
+    networks:
+      - app-network
+    environment:
+      SQLITE_DB_PATH: /data/database.sqlite
+
+networks:
+  app-network:
+    driver: bridge
