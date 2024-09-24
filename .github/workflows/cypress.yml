@@ -32,6 +32,14 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
+      # Change ownership of node_modules to the current user (to fix permissions)
+      - name: Fix permissions for node_modules
+        run: sudo chown -R $USER:$GROUP ./node_modules
+
+      # Install dependencies with --unsafe-perm to avoid permissions issues
+      - name: Install dependencies
+        run: npm ci --unsafe-perm
+
       # Build and start application using Docker Compose
       - name: Build and start services
         run: docker-compose up -d --build
