@@ -51,8 +51,8 @@ jobs:
           browser: chrome
           headless: true
           spec: "**/*.cy.js"
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 300000
+        #   wait-on: "http://localhost:3000"
+        #   wait-on-timeout: 300000
 
       # Step 8: Capture Node.js app logs (if failure occurs)
       - name: Capture Node.js app logs
