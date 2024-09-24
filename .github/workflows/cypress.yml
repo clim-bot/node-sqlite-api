@@ -36,13 +36,13 @@ jobs:
       - name: Install dependencies
         run: npm ci --unsafe-perm
 
-      # Fix permissions for node_modules after dependencies are installed
-      - name: Fix permissions for node_modules
-        run: sudo chown -R $USER:$GROUP ./node_modules || true
-
       # Build and start application using Docker Compose
       - name: Build and start services
         run: docker-compose up -d --build
+
+      # Wait for the application to be ready (increase timeout to 180 seconds)
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:3000 --timeout=180000
 
       # Run Cypress tests in Docker
       - name: Run Cypress tests
@@ -50,6 +50,7 @@ jobs:
         with:
           start: docker-compose up -d
           wait-on: http://localhost:3000
+          wait-on-timeout: 180000  # Increase the wait-on timeout to 180 seconds
           config-file: cypress.json
           browser: chrome
           headed: false
