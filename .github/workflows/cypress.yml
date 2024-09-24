@@ -33,9 +33,20 @@ jobs:
         env:
           NODE_ENV: test
 
-      # Wait for the app to be ready on port 3000
+      # Add delay to ensure app has time to start (optional)
+      - name: Wait for app to start
+        run: sleep 10
+
+      # Wait for the app to be ready on port 3000 using the local wait-on package
       - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000 --timeout=180000
+
+      # Capture Node.js app logs for debugging (if wait-on fails)
+      - name: Capture Node.js app logs
+        if: failure()  # Only run this step if a failure occurs
+        run: |
+          echo "Node.js App Logs:"
+          cat ./logs/app.log || echo "No logs found"
 
       # Run Cypress tests
       - name: Run Cypress tests
