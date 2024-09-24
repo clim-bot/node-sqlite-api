@@ -41,8 +41,8 @@ jobs:
         run: curl -I http://localhost:3000
 
       # Step 6: Wait for the app to be ready on port 3000 using wait-on
-      - name: Wait for app to be ready
-        run: npx wait-on http://localhost:3000 --timeout=300000
+    #   - name: Wait for app to be ready
+    #     run: npx wait-on http://localhost:3000 --timeout=300000
 
       # Step 7: Run Cypress tests
       - name: Run Cypress tests
