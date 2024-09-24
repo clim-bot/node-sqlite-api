@@ -54,7 +54,7 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
-      # Build and start application using Docker Compose (if docker-compose.yml is in the root directory)
+      # Build and start application using Docker Compose
       - name: Build and start services
         run: docker-compose up -d --build
 
@@ -66,7 +66,9 @@ jobs:
           wait-on: http://localhost:3000
           config-file: cypress.json
           browser: chrome
-          headless: true
+          headed: false
+        env:
+          CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
 
       # Shut down Docker Compose services
       - name: Shutdown Docker Compose
