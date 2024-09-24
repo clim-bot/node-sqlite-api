@@ -36,6 +36,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --unsafe-perm
 
+     # Check logs of the Node.js app
+      - name: Check Node.js app logs
+        run: docker-compose logs app
+
       # Build and start application using Docker Compose
       - name: Build and start services
         run: docker-compose up -d --build
