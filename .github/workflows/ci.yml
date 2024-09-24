@@ -54,6 +54,10 @@ jobs:
           sudo chmod +x /usr/local/bin/docker-compose
           docker-compose version
 
+      # Set the working directory (if your docker-compose.yml is not in the root)
+      - name: Set working directory
+        run: cd ./path/to/your/docker-compose.yml
+
       # Build and start application using Docker Compose
       - name: Build and start services
         run: docker-compose up -d --build
@@ -64,7 +68,7 @@ jobs:
         with:
           start: docker-compose up -d
           wait-on: http://localhost:3000
-          config-file: cypress.config.js
+          config-file: cypress.json
           browser: chrome
           headless: true
 
