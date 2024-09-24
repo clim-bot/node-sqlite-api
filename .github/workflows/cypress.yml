@@ -1,4 +1,4 @@
-name: Cypress Test
+name: Cypress Tests
 
 on:
   push:
@@ -9,57 +9,44 @@ on:
       - main
 
 jobs:
-  cypress-test:
-    name: Build and Run Cypress with Docker-in-Docker
+  cypress-run:
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:20.10.16
-        options: > 
-          --privileged 
-          --volume /var/run/docker.sock:/var/run/docker.sock
-        ports:
-          - 3000:3000
+
     steps:
-      # Checkout code
+      # Checkout the code from the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Install Docker Compose
-      - name: Install Docker Compose
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          docker-compose version
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-      # Install dependencies with --unsafe-perm to avoid permissions issues
+      # Install Node.js dependencies
       - name: Install dependencies
-        run: npm ci --unsafe-perm
+        run: npm ci
 
-     # Check logs of the Node.js app
-      - name: Check Node.js app logs
-        run: docker-compose logs app
+      # Start the application (make sure the app is listening on port 3000)
+      - name: Start application
+        run: npm start &
+        env:
+          NODE_ENV: test
 
-      # Build and start application using Docker Compose
-      - name: Build and start services
-        run: docker-compose up -d --build
-
-      # Wait for the application to be ready (increase timeout to 180 seconds)
+      # Wait for the app to be ready on port 3000
       - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000 --timeout=180000
 
-      # Run Cypress tests in Docker
+      # Run Cypress tests
       - name: Run Cypress tests
         uses: cypress-io/github-action@v5
         with:
-          start: docker-compose up -d
-          wait-on: http://localhost:3000
-          wait-on-timeout: 180000  # Increase the wait-on timeout to 180 seconds
-          config-file: cypress.json
           browser: chrome
-          headed: false
+          headless: true
           spec: "**/*.cy.js"
+          wait-on: "http://localhost:3000"
+          wait-on-timeout: 180000
 
-      # Shut down Docker Compose services
-      - name: Shutdown Docker Compose
-        run: docker-compose down
+      # Post-test: Shut down the application
+      - name: Stop application
+        run: kill $(lsof -t -i:3000)
