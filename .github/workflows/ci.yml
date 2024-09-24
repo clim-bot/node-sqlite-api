@@ -23,9 +23,9 @@ jobs:
         with:
           node-version: '18'
 
-      # Install dependencies with sudo to fix permissions issues
+      # Install dependencies with unsafe-perm
       - name: Install dependencies
-        run: sudo npm ci
+        run: npm ci --unsafe-perm
 
       # Run ESLint
       - name: Run ESLint
@@ -66,8 +66,8 @@ jobs:
           wait-on: http://localhost:3000
           config-file: cypress.json
           browser: chrome
-          headed: false   # Correct option for headless mode
-          spec: "**/*.cy.js"  # Run all tests with the .cy.js extension
+          headed: false
+          spec: "**/*.cy.js"
 
       # Shut down Docker Compose services
       - name: Shutdown Docker Compose
