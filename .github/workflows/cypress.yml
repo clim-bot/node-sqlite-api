@@ -3,61 +3,40 @@ name: Cypress Tests
 on:
   push:
     branches:
-      - main
+      - 'main'
   pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-latest
 
+  cypress-on-ubuntu-20:
+    runs-on: ubuntu-20.04
     steps:
-      # Checkout the code from the repository
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # Install Node.js dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Start the application (make sure the app is listening on port 3000)
       - name: Start application
         run: npm start &
         env:
           NODE_ENV: test
 
-      # Add delay to ensure app has time to start (optional)
-      - name: Wait for app to start
-        run: sleep 10
-
-      # Wait for the app to be ready on port 3000 using the local wait-on package
       - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000 --timeout=180000
 
-      # Capture Node.js app logs for debugging (if wait-on fails)
-      - name: Capture Node.js app logs
-        if: failure()  # Only run this step if a failure occurs
-        run: |
-          echo "Node.js App Logs:"
-          cat ./logs/app.log || echo "No logs found"
-
-      # Run Cypress tests
-      - name: Run Cypress tests
-        uses: cypress-io/github-action@v5
+      - name: Cypress tests
+        uses: cypress-io/github-action@v6
         with:
           browser: chrome
           headless: true
           spec: "**/*.cy.js"
-          wait-on: "http://localhost:3000"
-          wait-on-timeout: 180000
 
-      # Post-test: Shut down the application
       - name: Stop application
         run: kill $(lsof -t -i:3000)
