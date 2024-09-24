@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Lint, Build, and Cypress Test
 
 on:
   push:
@@ -32,38 +32,41 @@ jobs:
         run: npx eslint .
 
   cypress-test:
-    name: Run Cypress Tests
+    name: Build and Run Cypress with Docker-in-Docker
     runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:20.10.16
+        options: > 
+          --privileged 
+          --volume /var/run/docker.sock:/var/run/docker.sock
+        ports:
+          - 3000:3000
     steps:
       # Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Set up Node.js environment
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+      # Install Docker Compose
+      - name: Install Docker Compose
+        run: |
+          curl -L "https://github.com/docker/compose/releases/download/2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
 
-      # Install dependencies
-      - name: Install dependencies
-        run: npm install
+      # Build and start application using Docker Compose
+      - name: Build and start services
+        run: docker-compose up -d --build
 
-      # Start the application (adjust the command according to your app)
-      - name: Start application
-        run: npm start &
-        env:
-          NODE_ENV: test
-
-      # Wait for the app to be up and running
-      - name: Wait for server to be ready
-        run: npx wait-on http://localhost:3000
-
-      # Run Cypress tests
+      # Run Cypress tests in Docker
       - name: Run Cypress tests
         uses: cypress-io/github-action@v5
         with:
+          start: docker-compose up -d
+          wait-on: http://localhost:3000
+          config-file: cypress.json
           browser: chrome
-          record: false
-        env:
-          CYPRESS_baseUrl: http://localhost:3000
+          headless: true
+
+      # Shut down Docker Compose services
+      - name: Shutdown Docker Compose
+        run: docker-compose down
