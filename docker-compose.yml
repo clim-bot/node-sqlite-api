@@ -14,33 +14,40 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]  # Check if the app is running
+      interval: 30s  # Check every 30 seconds
+      timeout: 10s   # Timeout after 10 seconds
+      retries: 5     # Retry 5 times before marking it as unhealthy
     command: >
       sh -c "npm install && npm run db:migrate && npm start"
-      
+
   cypress:
     image: cypress/included:10.0.0
     container_name: cypress-tests
     depends_on:
-      - app
+      app:
+        condition: service_healthy  # Only start Cypress when the app is healthy
     environment:
       CYPRESS_baseUrl: http://app:3000
     volumes:
       - ./cypress:/e2e/cypress
       - ./cypress.json:/e2e/cypress.json
     entrypoint: npx cypress run
-    networks:
-      - app-network
 
   db:
     image: nouchka/sqlite3
     container_name: sqlite-db
     volumes:
       - ./data:/data
-    networks:
-      - app-network
     environment:
       SQLITE_DB_PATH: /data/database.sqlite
+    healthcheck:
+      test: ["CMD", "sqlite3", "/data/database.sqlite", "SELECT 1"]  # Basic SQLite health check
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 networks:
-  app-network:
+  default:
     driver: bridge
