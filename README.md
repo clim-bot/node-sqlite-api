@@ -35,8 +35,8 @@ To get the application up and running locally, follow these steps:
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/your-repository.git
-cd your-repository
+git clone git@github.com:clim-bot/node-sqlite-api.git
+cd node-sqlite-api
 ```
 
 ### Step 2: Install Dependencies
